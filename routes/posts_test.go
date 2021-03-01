@@ -75,3 +75,35 @@ func TestGetPostsHandler(t *testing.T) {
     t.Errorf("Expected: %d. Got: %d.", expectedTotal, resultTotal)
   }
 }
+
+func BenchmarkGetPostsHandler(b *testing.B) {
+  b.Run("Endpoint: GET /posts", func(b *testing.B) {
+    GetPosts = (&JsonPlaceholderMock{}).GetPosts
+    r, _ := http.NewRequest("GET", "/posts", nil)
+    w := httptest.NewRecorder()
+    handler := http.HandlerFunc(PostsResource{}.List)
+
+    b.ReportAllocs()
+    b.ResetTimer()
+
+    for i := 0; i < b.N; i++ {
+      handler.ServeHTTP(w, r)
+    }
+  })
+}
+
+func BenchmarkGetPostsHandlerParallel(b *testing.B) {
+  b.RunParallel(func(pb *testing.PB) {
+    GetPosts = (&JsonPlaceholderMock{}).GetPosts
+    r, _ := http.NewRequest("GET", "/posts", nil)
+    w := httptest.NewRecorder()
+    handler := http.HandlerFunc(PostsResource{}.List)
+
+    b.ReportAllocs()
+    b.ResetTimer()
+
+    for pb.Next() {
+      handler.ServeHTTP(w, r)
+    }
+  })
+}

@@ -8,3 +8,6 @@ install_deps:
 
 test:
 	go test -v ./...
+
+bench:
+	go test -bench=. ./routes -run=^$
